@@ -9,9 +9,10 @@ def separar_instrumentos(arquivo_audio, pasta_saida='saida_spleeter'):
     caminho = os.path.join(pasta_saida, base)
 
     instrumentos = {
-        'vocal': os.path.join(caminho, 'vocal.wav'),
+        'vocals': os.path.join(caminho, 'vocals.wav'),
         'drums': os.path.join(caminho, 'drums.wav'),
         'bass': os.path.join(caminho, 'bass.wav'),
-        'guitar': os.path.join(caminho, 'guitar.wav'),
+        'piano': os.path.join(caminho, 'piano.wav'),
+        'other': os.path.join(caminho, 'other.wav'),
     }
     return instrumentos

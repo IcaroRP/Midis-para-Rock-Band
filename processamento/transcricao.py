@@ -1,5 +1,5 @@
-from basic_pitch.inference import predict_and_save
 from pathlib import Path
+from basic_pitch.inference import predict_and_save
 
 def transcrever_para_midi(audio_path, pasta_saida='midis'):
     audio_path = Path(audio_path)
