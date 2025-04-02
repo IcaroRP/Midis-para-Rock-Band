@@ -1,12 +1,12 @@
 import os
 from spleeter.separator import Separator
 
-def separar_instrumentos(audio, saida='saida_spleeter'):
+def separar_instrumentos(arquivo_audio, pasta_saida='saida_spleeter'):
     separator = Separator('spleeter:5stems')
-    separator.separate_to_file(audio, saida)
+    separator.separate_to_file(arquivo_audio, pasta_saida)
 
-    base = os.path.splitext(os.path.basename(audio))[0]
-    caminho = os.path.join(saida, base)
+    base = os.path.splitext(os.path.basename(arquivo_audio))[0]
+    caminho = os.path.join(pasta_saida, base)
 
     instrumentos = {
         'vocal': os.path.join(caminho, 'vocal.wav'),
