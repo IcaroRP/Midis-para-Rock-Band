@@ -1,4 +1,4 @@
-from tempo import adicionar_trilha_tempo_dinamico
+from tempo import *
 from mido import MidiFile, MidiTrack, MetaMessage
 
 def importar_trilha(midi_path):
@@ -33,5 +33,9 @@ def criar_midi_c3(midis_entrada, caminho_audio_original, saida='c3_chart.mid'):
             print(f"Adicionada trilha: {trilhas_nomeadas[nome_instr]}")
 
     adicionar_trilha_tempo_dinamico(novo_midi, caminho_audio_original)
+    adicionar_trilha_beat(novo_midi, caminho_audio_original)
+    adicionar_marcadores_eventos(novo_midi, caminho_audio_original)
+    adicionar_trilha_venue(novo_midi, caminho_audio_original)
+    
     novo_midi.save(saida)
     print(f"MIDI combinado salvo como: {saida}")

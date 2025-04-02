@@ -1,11 +1,11 @@
-import separador
-import transcrever
+import transcrever, midis, separador
 
-instrumentos = separador('teste.mp3')
+def pipeline_completo(audio_mp3):
+    instrumentos = separador(audio_mp3)
 
-midis = {}
+    midis_gerados = {}
+    for nome, caminho_wav in instrumentos.items():
+        midi_path = transcrever(caminho_wav)
+        midis_gerados[nome] = midi_path
 
-for nome, caminho_wav in instrumentos.items():
-    midi_path = transcrever(caminho_wav)
-    midis[nome] = midi_path
-    print(f'{nome} -> {midi_path}')
+    midis(midis_gerados, audio_mp3, saida='saida_final_c3.mid')
