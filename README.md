@@ -48,7 +48,7 @@ projeto/
 
 ```bash
 # Clone o projeto
-git clone https://github.com/seu-usuario/projeto-chart.git
+git clone https://github.com/IcaroRP/Midis-para-Rock-Band
 cd projeto-chart
 
 # Crie e ative o ambiente virtual
