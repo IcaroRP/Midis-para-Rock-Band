@@ -1,17 +1,15 @@
+import soundfile as sf
 from pathlib import Path
-from basic_pitch.inference import predict_and_save
 
-def transcrever_para_midi(audio_path, pasta_saida='midis'):
-    audio_path = Path(audio_path)
-    pasta_saida = Path(pasta_saida)
-    pasta_saida.mkdir(parents=True, exist_ok=True)
+def transcrever_para_midi(caminho_audio):
+    caminho_audio = Path(caminho_audio).resolve()
+    print("🔍 Recebido para transcrição:", caminho_audio)
+    print("📂 Existe:", caminho_audio.exists())
+    print("📁 É arquivo:", caminho_audio.is_file())
 
-    predict_and_save(
-        [audio_path],
-        output_directory=pasta_saida,
-        save_midi=True,
-        save_model_outputs=False,
-        save_notes=False,
-    )
-
-    return pasta_saida / (audio_path.stem + '.mid')
+    try:
+        audio, sr = sf.read(str(caminho_audio))
+        print(f"✅ Áudio carregado com sucesso ({sr} Hz, {audio.shape})")
+    except RuntimeError as e:
+        print("❌ Erro ao carregar com soundfile:", e)
+        return None

@@ -1,3 +1,4 @@
+
 from processamento.instrumentos import separar_instrumentos
 from processamento.transcricao import transcrever_para_midi
 from processamento.harmonias import separar_vocais_em_harmonias
@@ -5,13 +6,14 @@ from processamento.tempo import adicionar_trilha_tempo_dinamico, adicionar_trilh
 from processamento.eventos import adicionar_marcadores_eventos, adicionar_trilha_venue
 from processamento.utils import importar_trilha
 
+import mido
 from mido import MidiFile, MidiTrack, MetaMessage
 
 trilhas_nomeadas = {
     'bass': 'PART BASS',
     'drums': 'PART DRUMS',
     'piano': 'PART KEYS',
-    'other': 'PART GUITAR',
+    'other': 'PART GUITAR',  # assumindo que a guitarra está em "other"
 }
 
 def criar_midi_c3(midis_entrada, caminho_audio_original, saida='c3_chart.mid'):
@@ -59,7 +61,12 @@ def pipeline_completo(audio_mp3):
 
     midis_gerados = {}
     for nome, caminho_wav in instrumentos.items():
+        print(f"Transcrevendo {nome}: {caminho_wav}")
         midi_path = transcrever_para_midi(caminho_wav)
-        midis_gerados[nome] = midi_path
+        if midi_path:
+            midis_gerados[nome] = midi_path
 
     criar_midi_c3(midis_gerados, audio_mp3, saida='saida_final_c3.mid')
+
+if __name__ == "__main__":
+    pipeline_completo("audio_example_mono.mp3")
