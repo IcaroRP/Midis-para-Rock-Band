@@ -1,8 +1,12 @@
 import librosa
 from mido import MidiTrack, MetaMessage
+import scipy.signal
+import scipy.signal.windows
 
 def detectar_tempos(audio_path, ticks_per_beat=480):
     y, sr = librosa.load(audio_path)
+    if not hasattr(scipy.signal, 'hann'):
+        scipy.signal.hann = scipy.signal.windows.hann
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr, units='frames')
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
@@ -26,8 +30,8 @@ def detectar_tempos(audio_path, ticks_per_beat=480):
 
     return tempos_midi
 
-def adicionar_trilha_tempo_dinamico(midi, audio_path):
-    tempos = detectar_tempos(audio_path, ticks_per_beat=midi.ticks_per_beat)
+def adicionar_trilha_tempo_dinamico(midi, audio_path, ticks_per_beat=480):
+    tempos = detectar_tempos(audio_path, ticks_per_beat=ticks_per_beat)
     tempo_track = MidiTrack()
     tempo_track.append(MetaMessage('track_name', name='TEMPO', time=0))
 
@@ -40,7 +44,7 @@ def adicionar_trilha_tempo_dinamico(midi, audio_path):
     midi.tracks.insert(0, tempo_track)
     print("Trilha de tempo dinâmica adicionada.")
 
-def adicionar_trilha_beat(midi, audio_path):
+def adicionar_trilha_beat(midi, audio_path, ticks_per_beat=480):
     y, sr = librosa.load(audio_path)
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
@@ -49,7 +53,6 @@ def adicionar_trilha_beat(midi, audio_path):
     beat_track.append(MetaMessage('track_name', name='BEAT', time=0))
     beat_track.append(MetaMessage('time_signature', numerator=4, denominator=4, time=0))
 
-    ticks_per_beat = midi.ticks_per_beat
     last_tick = 0
 
     for i, t in enumerate(beat_times):

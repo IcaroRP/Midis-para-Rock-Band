@@ -1,29 +1,30 @@
 import os
-from spleeter.separator import Separator
+import subprocess
 
 def separar_instrumentos(arquivo_audio):
-    # Cria o separador com multiprocessing desativado para evitar erro no Windows
-    separator = Separator("spleeter:5stems")
-
-    # Nome base do arquivo (sem extensão)
     nome_base = os.path.splitext(os.path.basename(arquivo_audio))[0]
+    pasta_saida = os.path.join("separated", "htdemucs", nome_base)
 
-    # Pasta base onde o Spleeter salvará os resultados
-    pasta_saida = os.path.join("saida_spleeter")
+    if not os.path.exists(pasta_saida):
+        print(f"🎧 Rodando Demucs para separar: {arquivo_audio}")
+        try:
+            subprocess.run(["demucs", arquivo_audio], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Erro ao rodar Demucs: {e}")
+            return {}
 
-    # Roda o separador (Spleeter criará subpasta com nome_base automaticamente)
-    separator.separate_to_file(arquivo_audio, pasta_saida)
+    if not os.path.exists(pasta_saida):
+        print(f"❌ Pasta de saída do Demucs não encontrada: {pasta_saida}")
+        return {}
 
-    # Caminho final onde os arquivos separados estarão
-    pasta_final = os.path.join(pasta_saida, nome_base)
+    instrumentos = ["vocals", "drums", "bass", "other"]
 
-    # Lista de instrumentos gerados pelo modelo 5stems
-    instrumentos = ["vocals", "drums", "bass", "piano", "other"]
-
-    # Cria dicionário com os caminhos para cada .wav
-    caminhos = {
-        inst: os.path.abspath(os.path.join(pasta_final, f"{inst}.wav"))
-        for inst in instrumentos
-    }
+    caminhos = {}
+    for inst in instrumentos:
+        caminho = os.path.join(pasta_saida, f"{inst}.wav")
+        if os.path.exists(caminho):
+            caminhos[inst] = os.path.abspath(caminho)
+        else:
+            print(f"⚠️ Arquivo não encontrado: {caminho}")
 
     return caminhos

@@ -1,72 +1,68 @@
-
+import os
+import pretty_midi
+from mido import MidiFile
+import io
 from processamento.instrumentos import separar_instrumentos
-from processamento.transcricao import transcrever_para_midi
-from processamento.harmonias import separar_vocais_em_harmonias
+from processamento.crepe_transcriber import transcrever_audio_para_instrumento
 from processamento.tempo import adicionar_trilha_tempo_dinamico, adicionar_trilha_beat
-from processamento.eventos import adicionar_marcadores_eventos, adicionar_trilha_venue
-from processamento.utils import importar_trilha
+from processamento.eventos import adicionar_marcadores_eventos
+from processamento.utils import get_ticks_per_beat_from_pretty_midi
 
-import mido
-from mido import MidiFile, MidiTrack, MetaMessage
+def pipeline_completo(audio_original):
+    print(f"\n🎬 Iniciando pipeline para: {audio_original}")
 
-trilhas_nomeadas = {
-    'bass': 'PART BASS',
-    'drums': 'PART DRUMS',
-    'piano': 'PART KEYS',
-    'other': 'PART GUITAR',  # assumindo que a guitarra está em "other"
-}
+    # 1. Separar instrumentos com Demucs
+    instrumentos = separar_instrumentos(audio_original)
+    if not instrumentos:
+        print("❌ Nenhum instrumento separado. Encerrando pipeline.")
+        return
 
-def criar_midi_c3(midis_entrada, caminho_audio_original, saida='c3_chart.mid'):
-    novo_midi = MidiFile(ticks_per_beat=480)
+    escolha = input("Deseja continuar?: ")
 
-    for nome_instr, caminho_midi in midis_entrada.items():
-        if nome_instr == 'vocals':
-            notas, harm1, harm2 = separar_vocais_em_harmonias(caminho_midi)
+    if escolha == 'sim':   
+        # 2. Iniciar objeto PrettyMIDI final
+        midi_pretty = pretty_midi.PrettyMIDI()
 
-            pista_principal = MidiTrack()
-            pista_principal.append(MetaMessage('track_name', name='PART VOCALS', time=0))
-            pista_principal.extend(notas)
-            novo_midi.tracks.append(pista_principal)
+        # 3. Transcrever cada instrumento encontrado
+        mapa_programas = {
+            "vocals": 0,    # Piano
+            "bass": 34,     # Fingered Bass
+            "drums": 118,   # Synth Drum (melhor do que 0 para evitar conflito)
+            "other": 81     # Lead 2 (melody)
+        }
 
-            pista_h1 = MidiTrack()
-            pista_h1.append(MetaMessage('track_name', name='HARM1', time=0))
-            pista_h1.extend(harm1)
-            novo_midi.tracks.append(pista_h1)
+        for nome, caminho in instrumentos.items():
+            program = mapa_programas.get(nome, 0)
+            instrumento_midi = transcrever_audio_para_instrumento(
+                caminho,
+                instrument_name=nome.upper(),
+                program_number=program
+            )
+            midi_pretty.instruments.append(instrumento_midi)
 
-            pista_h2 = MidiTrack()
-            pista_h2.append(MetaMessage('track_name', name='HARM2', time=0))
-            pista_h2.extend(harm2)
-            novo_midi.tracks.append(pista_h2)
+        # 4. Converter PrettyMIDI para mido.MidiFile para adicionar tempo/eventos
+        buffer = io.BytesIO()
+        midi_pretty.write(buffer)
+        buffer.seek(0)
+        midi_mido = MidiFile(file=buffer)
 
-            print("Vocais principais e harmonias adicionados.")
-        elif nome_instr in trilhas_nomeadas:
-            trilha = importar_trilha(caminho_midi)
-            if trilha:
-                nova_trilha = MidiTrack()
-                nova_trilha.append(MetaMessage('track_name', name=trilhas_nomeadas[nome_instr], time=0))
-                nova_trilha.extend(trilha)
-                novo_midi.tracks.append(nova_trilha)
-                print(f"Adicionada trilha: {trilhas_nomeadas[nome_instr]}")
+        # 5. Obter ticks_per_beat dinamicamente via mido
+        ticks_per_beat = midi_mido.ticks_per_beat
 
-    adicionar_trilha_tempo_dinamico(novo_midi, caminho_audio_original)
-    adicionar_trilha_beat(novo_midi, caminho_audio_original)
-    adicionar_marcadores_eventos(novo_midi, caminho_audio_original)
-    adicionar_trilha_venue(novo_midi, caminho_audio_original)
+        # 6. Adicionar trilhas extras com mido
+        adicionar_trilha_tempo_dinamico(midi_mido, audio_original, ticks_per_beat)
+        adicionar_trilha_beat(midi_mido, audio_original, ticks_per_beat)
+        adicionar_marcadores_eventos(midi_mido, audio_original)
 
-    novo_midi.save(saida)
-    print(f"MIDI combinado salvo como: {saida}")
+        # 7. Salvar MIDI final
+        nome_base = os.path.splitext(os.path.basename(audio_original))[0]
+        output_path = f"saida_midis/{nome_base}_final.mid"
+        os.makedirs("saida_midis", exist_ok=True)
+        midi_mido.save(output_path)
+        print(f"\n✅ Pipeline finalizado! MIDI salvo em: {output_path}\n")
+    else:
+        print(f"\n✅ Pipeline finalizado!\n")
 
-def pipeline_completo(audio_mp3):
-    instrumentos = separar_instrumentos(audio_mp3)
-
-    midis_gerados = {}
-    for nome, caminho_wav in instrumentos.items():
-        print(f"Transcrevendo {nome}: {caminho_wav}")
-        midi_path = transcrever_para_midi(caminho_wav)
-        if midi_path:
-            midis_gerados[nome] = midi_path
-
-    criar_midi_c3(midis_gerados, audio_mp3, saida='saida_final_c3.mid')
-
+# Execução direta
 if __name__ == "__main__":
-    pipeline_completo("audio_example_mono.mp3")
+    pipeline_completo("No Way Through.mp3")
