@@ -1,104 +1,113 @@
-# 🥁🎸 Gerador de MIDI para Rock Band (C3 Tools Format)
+# Midis para Rock Band 🎸
 
-Este projeto em Python automatiza a criação de arquivos `.mid` compatíveis com o formato da **C3 Tools** para charts do jogo **Rock Band**. Ele extrai automaticamente os instrumentos e vocais de uma música e gera pistas MIDI para cada um deles, incluindo tempo, compassos, eventos, luzes, câmeras e até harmonias vocais.
+Este projeto tem como objetivo converter áudios em arquivos MIDI compatíveis com jogos estilo Rock Band/Guitar Hero. Ele realiza:
 
----
-
-## 🚀 Funcionalidades
-
-- 🎧 Separação de instrumentos com **Spleeter**
-- 🎹 Transcrição automática para **MIDI** com **basic-pitch**
-- 🎼 Geração de pistas MIDI para:
-  - `PART VOCALS` (com `HARM1`, `HARM2`)
-  - `PART GUITAR`, `PART BASS`, `PART DRUMS`, `PART KEYS`
-- 🕒 Tempo dinâmico e compassos sincronizados
-- 🎤 Análise de seções com IA (`EVENTS`)
-- 🎬 Animações automáticas de palco (`VENUE`)
-- 📦 Pronto para uso com **Reaper + C3 CON Tools**
+- Separação de instrumentos com **Demucs**
+- Transcrição com **CREPE** (alta qualidade de pitch) - Ainda não funcional
+- Geração de tracks MIDI (vocals, bass, drums, other)
+- Adição de tempo dinâmico, compassos e marcadores de eventos - Quebrado
+- Exportação de arquivos `.mid` prontos para charting
 
 ---
 
-## 📁 Estrutura do Projeto
+## ✅ Pré-requisitos
 
-```
-projeto/
-├── main.py
-├── requirements.txt
-├── processamento/
-│   ├── __init__.py
-│   ├── instrumentos.py
-│   ├── transcricao.py
-│   ├── harmonias.py
-│   ├── tempo.py
-│   ├── eventos.py
-│   └── utils.py
-```
+- Python 3.9 ou superior
+- [ffmpeg](https://ffmpeg.org/) instalado (para leitura de .mp3/.wav)
+- GPU (opcional) com CUDA para acelerar o Demucs
 
 ---
 
-## ⚙️ Requisitos
+## 🚀 Instalação
 
-- Python 3.10 (recomendado)
-- Pip
-- Ambiente virtual (opcional, mas recomendado)
-
----
-
-## 🧩 Instalação
+Crie um ambiente virtual e instale as dependências:
 
 ```bash
-# Clone o projeto
-git clone https://github.com/IcaroRP/Midis-para-Rock-Band
-cd projeto-chart
-
-# Crie e ative o ambiente virtual
 python -m venv env
-env\Scripts\activate  # Windows
+call env\Scripts\activate  # no Windows
 
-# Instale as dependências
 pip install -r requirements.txt
 ```
 
+> ⚠️ Para suporte a GPU, instale o PyTorch com CUDA conforme seu driver: [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)
+
 ---
 
-## 🛠️ Uso
+## 🎧 Separando os instrumentos
 
-1. Coloque a música `.mp3` na raiz do projeto.
-2. Execute o script:
+Use o script de separação:
+
+```bash
+separar_audio_demucs.bat caminho\para\audio.mp3
+```
+
+Os stems (vocals, bass, drums, other) serão salvos em:
+
+```
+saida_demucs/htdemucs/NOME_DO_ARQUIVO/
+```
+
+---
+
+## 🎼 Rodando a pipeline principal
+
+Edite o caminho no `main.py` e execute:
 
 ```bash
 python main.py
 ```
 
-3. Isso irá:
-   - Separar os instrumentos
-   - Transcrever os MIDIs
-   - Gerar o arquivo `saida_final_c3.mid` com todas as trilhas
-4. Importe o `.mid` no **REAPER + C3 Tools** para finalizar o chart.
+O MIDI final será salvo em:
+
+```
+saida_midis/NOME_DO_ARQUIVO_final.mid
+```
 
 ---
 
-## 📌 Dependências
+## 🎮 Compatibilidade Rock Band
 
-Veja todas em [requirements.txt](./requirements.txt), incluindo:
+As notas do stem `other` podem ser mapeadas para lanes Rock Band (Green to Orange) usando:
 
-- `spleeter`
-- `librosa`
-- `mido`
-- `scikit-learn`
-- `basic-pitch`
+- C4 (60) = Green
+- C#4 (61) = Red
+- D4 (62) = Yellow
+- D#4 (63) = Blue
+- E4 (64) = Orange
 
----
-
-## 💡 Futuras melhorias
-
-- Sincronização labial automática (`lyric` + `phrase_start`)
-- Classificação por gênero musical
-- Validador automático de qualidade do chart
-- Exportador para outros formatos (Clone Hero, Osu!)
+Esse mapeamento pode ser usado em REAPER + Magma/EOF para criar charts jogáveis.
 
 ---
 
-## 📜 Licença
+## 📁 Estrutura
 
-MIT © 2025 — por kentjpg
+```
+Midis-para-Rock-Band/
+├── main.py
+├── requirements.txt
+├── separar_audio_demucs.bat
+├── processamento/
+│   ├── crepe_transcriber.py
+│   ├── tempo.py
+│   ├── eventos.py
+│   ├── instrumentos.py
+│   ├── utils.py
+├── saida_demucs/
+├── saida_midis/
+├── tarefas/
+│   ├── vocal_to_midi.py
+│   ├── other_to_midi.py
+│   ├── bass_to_midi.py
+```
+
+---
+
+## 📄 Licença
+
+Este projeto é livre para fins educacionais e artísticos. Não é afiliado a Harmonix, Rock Band ou Guitar Hero.
+
+---
+
+## ✉️ Contato
+
+Para dúvidas, entre em contato via GitHub ou e-mail.

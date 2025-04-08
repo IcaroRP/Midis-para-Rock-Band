@@ -65,4 +65,4 @@ def pipeline_completo(audio_original):
 
 # Execução direta
 if __name__ == "__main__":
-    pipeline_completo("No Way Through.mp3")
+    pipeline_completo("sua_musica_aqui.mp3")

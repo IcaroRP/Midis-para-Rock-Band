@@ -6,6 +6,7 @@ mido>=1.2.10
 scikit-learn>=1.3
 soundfile>=0.12.1
 torch>=2.0.0  # instale com suporte CUDA se usar GPU
+music21
 
 # Recomendado para compatibilidade com CREPE e separação
 torchvision>=0.15
